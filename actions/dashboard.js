@@ -5,11 +5,7 @@ import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { request } from "@arcjet/next";
 import { createRateLimiter, checkRateLimit } from "@/lib/arcjet";
-// import { Resend } from "resend";
-import { WithdrawalRequestEmail } from "@/emails/WithdrawalRequestEmail";
-import { render } from "@react-email/render";
 
-// const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = "shrutipandeykld123@gmail.com";
 
 const withdrawalLimiter = createRateLimiter({
@@ -168,30 +164,7 @@ export const requestWithdrawal = async ({
       }),
     ]);
 
-    // Fire admin email — non-blocking, failure won't affect the user
-    try {
-      const reviewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/payout/${payout.id}`;
-      const html = await render(
-        WithdrawalRequestEmail({
-          interviewerName: dbUser.name ?? "Unknown",
-          interviewerEmail: dbUser.email,
-          credits,
-          platformFee,
-          netAmount,
-          paymentMethod,
-          paymentDetail,
-          reviewUrl,
-        })
-      );
-      await resend.emails.send({
-        from: "Prept <onboarding@resend.dev>",
-        to: ADMIN_EMAIL,
-        subject: `Withdrawal Request — ${dbUser.name} · ${credits} credits`,
-        html,
-      });
-    } catch (emailErr) {
-      console.error("Withdrawal email failed:", emailErr);
-    }
+    
 
     revalidatePath("/dashboard");
     return { success: true, netAmount };
